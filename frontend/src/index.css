@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #0052d9;
+  --success-color: #00a870;
+  --warning-color: #ed7b2f;
+  --error-color: #e34d59;
+  --text-primary: #000000e0;
+  --text-secondary: #000000a6;
+  --text-placeholder: #00000073;
+  --bg-primary: #f3f3f3;
+  --bg-container: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.t-layout {
+  min-height: 100vh;
+}
+
+.t-layout-sider {
+  background-color: #001529;
+}
+
+.t-layout-header {
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.t-layout-content {
+  padding: 24px;
+  background-color: var(--bg-primary);
+}
+
+.t-menu {
+  background-color: #001529;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.t-menu__item {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.t-menu__item:hover {
+  color: #ffffff;
+  background-color: #1890ff;
+}
+
+.t-menu__item.t-is-active {
+  background-color: #1890ff;
+  color: #ffffff;
+}

@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: agentlink-postgres
+    environment:
+      POSTGRES_DB: agentlink
+      POSTGRES_USER: agentlink_user
+      POSTGRES_PASSWORD: agentlink_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentlink_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: agentlink-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  ganache:
+    image: trufflesuite/ganache:latest
+    container_name: agentlink-ganache
+    ports:
+      - "8545:8545"
+    command: ganache --host 0.0.0.0 --accounts 10 --defaultBalanceEther 1000
+    volumes:
+      - ganache_data:/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agentlink-api
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: agentlink
+      DB_USER: agentlink_user
+      DB_PASSWORD: agentlink_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ETH_NETWORK: localhost
+      ETH_RPC_URL: http://ganache:8545
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ganache:
+        condition: service_started
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+
+volumes:
+  postgres_data:
+  redis_data:
+  ganache_data:

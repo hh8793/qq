@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentLink - 智能体结算系统演示</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        /* 动态背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* 浮动粒子效果 */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 15s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.5),
+                0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 0 1px rgba(255, 255, 255, 0.1);
+            max-width: 1400px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.6s ease;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            animation: rotate 25s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .header h1 {
+            font-size: 52px;
+            margin-bottom: 16px;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(102, 126, 234, 0.3);
+            letter-spacing: -1px;
+        }
+        
+        .header p {
+            opacity: 0.95;
+            font-size: 18px;
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            position: relative;
+            letter-spacing: 0.3px;
+        }
+        
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .tab.active {
+            background: rgba(255, 255, 255, 0.08);
+            color: #667eea;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 3px 3px 0 0;
+            box-shadow: 0 -2px 10px rgba(102, 126, 234, 0.5);
+        }
+        
+        .content {
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            min-height: 600px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(10px);
+            padding: 35px;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            opacity: 0.8;
+        }
+        
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .stat-card:hover::after {
+            opacity: 1;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(102, 126, 234, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -2px;
+        }
+        
+        .stat-label {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0.5;
+        }
+        
+        .card:hover {
+            border-color: rgba(102, 126, 234, 0.2);
+            box-shadow: 
+                0 15px 50px rgba(0, 0, 0, 0.2),
+                0 0 15px rgba(102, 126, 234, 0.05);
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            margin-bottom: 30px;
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            letter-spacing: -0.5px;
+        }
+        
+        .card h2::before {
+            content: '';
+            width: 4px;
+            height: 28px;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            border-radius: 2px;
+            display: block;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .table th, .table td {
+            padding: 18px 20px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .table th {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        .table tbody tr:hover td {
+            background: rgba(102, 126, 234, 0.08);
+        }
+        
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tag-success {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.2), rgba(32, 201, 151, 0.2));
+            color: #4fd1c5;
+            border-color: rgba(79, 209, 197, 0.3);
+        }
+        
+        .tag-warning {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(253, 126, 20, 0.2));
+            color: #f6ad55;
+            border-color: rgba(246, 173, 85, 0.3);
+        }
+        
+        .tag-danger {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(232, 62, 140, 0.2));
+            color: #fc8181;
+            border-color: rgba(252, 129, 129, 0.3);
+        }
+        
+        .tag-info {
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.2), rgba(102, 16, 242, 0.2));
+            color: #90cdf4;
+            border-color: rgba(144, 205, 244, 0.3);
+        }
+        
+        .tag-primary {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            color: #a3bffa;
+            border-color: rgba(163, 191, 250, 0.3);
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            color: #a3bffa;
+            box-shadow: 
+                0 4px 20px rgba(102, 126, 234, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 30px rgba(102, 126, 234, 0.3),
+                0 0 20px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.3), rgba(32, 201, 151, 0.3));
+            color: #4fd1c5;
+            box-shadow: 
+                0 4px 20px rgba(40, 167, 69, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 30px rgba(40, 167, 69, 0.3),
+                0 0 20px rgba(40, 167, 69, 0.1);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.3), rgba(232, 62, 140, 0.3));
+            color: #fc8181;
+            box-shadow: 
+                0 4px 20px rgba(220, 53, 69, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 30px rgba(220, 53, 69, 0.3),
+                0 0 20px rgba(220, 53, 69, 0.1);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(253, 126, 20, 0.3));
+            color: #f6ad55;
+            box-shadow: 
+                0 4px 20px rgba(255, 193, 7, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 30px rgba(255, 193, 7, 0.3),
+                0 0 20px rgba(255, 193, 7, 0.1);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.3), rgba(102, 16, 242, 0.3));
+            color: #90cdf4;
+            box-shadow: 
+                0 4px 20px rgba(23, 162, 184, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 30px rgba(23, 162, 184, 0.3),
+                0 0 20px rgba(23, 162, 184, 0.1);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #a3bffa;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            box-shadow: 
+                0 4px 20px rgba(102, 126, 234, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .btn-outline:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 30px rgba(102, 126, 234, 0.2),
+                0 0 20px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn-small {
+            padding: 8px 18px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-lg {
+            padding: 16px 40px;
+            font-size: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 28px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+        }
+        
+        .form-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 
+                0 0 0 5px rgba(102, 126, 234, 0.1),
+                0 0 20px rgba(102, 126, 234, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.95) 0%, rgba(20, 20, 40, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            padding: 50px;
+            border-radius: 28px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 
+                0 30px 100px rgba(0, 0, 0, 0.6),
+                0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 35px;
+            color: white;
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 35px;
+            right: 35px;
+            padding: 20px 35px;
+            border-radius: 16px;
+            color: white;
+            font-weight: 700;
+            z-index: 1001;
+            animation: slideInToast 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.4),
+                0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            min-width: 320px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .toast-success {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.4), rgba(32, 201, 151, 0.4));
+            border-color: rgba(79, 209, 197, 0.3);
+        }
+        
+        .toast-error {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.4), rgba(232, 62, 140, 0.4));
+            border-color: rgba(252, 129, 129, 0.3);
+        }
+        
+        .toast-info {
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.4), rgba(102, 16, 242, 0.4));
+            border-color: rgba(144, 205, 244, 0.3);
+        }
+        
+        @keyframes slideInToast {
+            from {
+                transform: translateX(500px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .detail-view {
+            display: none;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-top: 25px;
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.2),
+                0 0 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .detail-view.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+        
+        .detail-value {
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 35px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 10px 40px rgba(102, 126, 234, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .balance-amount {
+            font-size: 64px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -3px;
+        }
+        
+        .balance-label {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 25px;
+            opacity: 0.3;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+        }
+        
+        .empty-state-text {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 16px 20px 16px 55px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 
+                0 0 0 5px rgba(102, 126, 234, 0.1),
+                0 0 20px rgba(102, 126, 234, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            opacity: 0.6;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 20px;
+            }
+            
+            .header h1 {
+                font-size: 36px;
+            }
+            
+            .stat-value {
+                font-size: 42px;
+            }
+            
+            .card {
+                padding: 25px;
+            }
+            
+            .card h2 {
+                font-size: 22px;
+            }
+            
+            .table th, .table td {
+                padding: 12px 14px;
+                font-size: 13px;
+            }
+            
+            .modal-content {
+                padding: 30px;
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 浮动粒子 -->
+    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+    <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+    <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
+    <div class="particle" style="left: 60%; animation-delay: 10s;"></div>
+    <div class="particle" style="left: 70%; animation-delay: 12s;"></div>
+    <div class="particle" style="left: 80%; animation-delay: 14s;"></div>
+    <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AgentLink</h1>
+            <p>企业级 AI 智能体协同结算基础设施</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('dashboard')">📊 仪表盘</button>
+            <button class="tab" onclick="showTab('agents')">👤 智能体</button>
+            <button class="tab" onclick="showTab('settlements')">💰 结算</button>
+            <button class="tab" onclick="showTab('subscriptions')">📅 订阅</button>
+        </div>
+        
+        <div class="content">
+            <!-- 仪表盘 -->
+            <div id="tab-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card" onclick="showTab('agents')" style="cursor: pointer;">
+                        <div class="stat-value" id="totalAgents">3</div>
+                        <div class="stat-label">智能体总数</div>
+                    </div>
+                    <div class="stat-card" onclick="showTab('settlements')" style="cursor: pointer;">
+                        <div class="stat-value" id="totalTransactions">2</div>
+                        <div class="stat-label">交易总数</div>
+                    </div>
+                    <div class="stat-card" onclick="showTab('subscriptions')" style="cursor: pointer;">
+                        <div class="stat-value" id="activeSubscriptions">1</div>
+                        <div class="stat-label">活跃订阅</div>
+                    </div>
+                    <div class="stat-card" onclick="showTab('agents')" style="cursor: pointer;">
+                        <div class="stat-value" id="totalBalance">36.3 ETH</div>
+                        <div class="stat-label">总余额</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>📈 最近交易</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>付款方</th>
+                                <th>收款方</th>
+                                <th>金额</th>
+                                <th>服务类型</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTransactions">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 智能体 -->
+            <div id="tab-agents" style="display: none;">
+                <div class="action-bar">
+                    <button class="btn btn-primary btn-lg" onclick="showAddAgentModal()">➕ 新增智能体</button>
+                    <button class="btn btn-info" onclick="showBalanceModal()">💳 查看总余额</button>
+                    <button class="btn btn-outline" onclick="refreshAgents()">🔄 刷新列表</button>
+                </div>
+                
+                <div class="card">
+                    <h2>智能体列表</h2>
+                    <div class="search-box">
+                        <input type="text" id="agentSearch" placeholder="搜索智能体..." oninput="searchAgents()">
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>名称</th>
+                                <th>类型</th>
+                                <th>状态</th>
+                                <th>余额</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="agentsTable">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="agentDetailView" class="detail-view">
+                    <h2>智能体详情</h2>
+                    <div id="agentDetailContent"></div>
+                </div>
+            </div>
+            
+            <!-- 结算 -->
+            <div id="tab-settlements" style="display: none;">
+                <div class="card">
+                    <h2>💰 发起结算</h2>
+                    <div class="form-group">
+                        <label>付款方</label>
+                        <select id="fromAgent">
+                            <option value="">选择智能体</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>收款方</label>
+                        <select id="toAgent">
+                            <option value="">选择智能体</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>金额 (ETH)</label>
+                        <input type="number" id="amount" placeholder="输入金额" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>服务类型</label>
+                        <select id="serviceType">
+                            <option value="">选择服务类型</option>
+                            <option value="素材生成">素材生成</option>
+                            <option value="内容创作">内容创作</option>
+                            <option value="算力服务">算力服务</option>
+                            <option value="数据分析">数据分析</option>
+                            <option value="线索生成">线索生成（按效付费）</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-lg" onclick="initiateSettlement()">🚀 发起结算</button>
+                </div>
+                
+                <div class="card">
+                    <h2>📋 交易记录</h2>
+                    <div class="action-bar">
+                        <button class="btn btn-outline" onclick="refreshTransactions()">🔄 刷新</button>
+                        <button class="btn btn-warning" onclick="filterTransactions('PENDING')">⏳ 待处理</button>
+                        <button class="btn btn-success" onclick="filterTransactions('COMPLETED')">✅ 已完成</button>
+                        <button class="btn btn-danger" onclick="filterTransactions('FAILED')">❌ 失败</button>
+                        <button class="btn btn-info" onclick="filterTransactions('ALL')">📄 全部</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>付款方</th>
+                                <th>收款方</th>
+                                <th>金额</th>
+                                <th>服务</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTable">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="transactionDetailView" class="detail-view">
+                    <h2>交易详情</h2>
+                    <div id="transactionDetailContent"></div>
+                </div>
+            </div>
+            
+            <!-- 订阅 -->
+            <div id="tab-subscriptions" style="display: none;">
+                <div class="card">
+                    <h2>📅 创建订阅</h2>
+                    <div class="form-group">
+                        <label>订阅者</label>
+                        <select id="subscriberAgent">
+                            <option value="">选择智能体</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>提供者</label>
+                        <select id="providerAgent">
+                            <option value="">选择智能体</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>金额 (ETH)</label>
+                        <input type="number" id="subAmount" placeholder="输入金额" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>计费周期（天）</label>
+                        <input type="number" id="billingCycle" placeholder="例如：30" value="30">
+                    </div>
+                    <div class="form-group">
+                        <label>服务类型</label>
+                        <select id="subServiceType">
+                            <option value="">选择服务类型</option>
+                            <option value="月度内容生成">月度内容生成</option>
+                            <option value="算力服务包">算力服务包</option>
+                            <option value="数据分析服务">数据分析服务</option>
+                            <option value="营销推广包">营销推广包</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-lg" onclick="createSubscription()">✨ 创建订阅</button>
+                </div>
+                
+                <div class="card">
+                    <h2>📋 订阅列表</h2>
+                    <div class="action-bar">
+                        <button class="btn btn-outline" onclick="refreshSubscriptions()">🔄 刷新</button>
+                        <button class="btn btn-success" onclick="filterSubscriptions('active')">✅ 活跃</button>
+                        <button class="btn btn-danger" onclick="filterSubscriptions('inactive')">❌ 停用</button>
+                        <button class="btn btn-info" onclick="filterSubscriptions('ALL')">📄 全部</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>订阅者</th>
+                                <th>提供者</th>
+                                <th>服务</th>
+                                <th>金额</th>
+                                <th>周期</th>
+                                <th>下次计费</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subscriptionsTable">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="subscriptionDetailView" class="detail-view">
+                    <h2>订阅详情</h2>
+                    <div id="subscriptionDetailContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 新增智能体模态框 -->
+    <div class="modal" id="addAgentModal">
+        <div class="modal-content">
+            <h2>✨ 新增智能体</h2>
+            <div class="form-group">
+                <label>名称</label>
+                <input type="text" id="agentName" placeholder="输入智能体名称">
+            </div>
+            <div class="form-group">
+                <label>类型</label>
+                <select id="agentType">
+                    <option value="MARKETING">📢 营销</option>
+                    <option value="SUPPLY_CHAIN">📦 供应链</option>
+                    <option value="CONTENT">✍️ 内容创作</option>
+                    <option value="COMPUTE">⚡ 算力服务</option>
+                    <option value="ANALYTICS">📊 数据分析</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>初始余额 (ETH)</label>
+                <input type="number" id="agentBalance" placeholder="输入初始余额" value="10">
+            </div>
+            <div class="form-group">
+                <label>钱包地址</label>
+                <input type="text" id="agentWallet" placeholder="0x...">
+            </div>
+            <div style="text-align: right; display: flex; gap: 14px; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="hideAddAgentModal()">取消</button>
+                <button class="btn btn-primary" onclick="addAgent()">✓ 确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 余额模态框 -->
+    <div class="modal" id="balanceModal">
+        <div class="modal-content">
+            <h2>💳 账户余额</h2>
+            <div class="balance-card">
+                <div class="balance-amount" id="totalBalanceAmount">36.3 ETH</div>
+                <div class="balance-label">总余额</div>
+            </div>
+            <div id="balanceList"></div>
+            <div style="text-align: right; margin-top: 25px;">
+                <button class="btn btn-primary" onclick="hideBalanceModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 存款模态框 -->
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <h2>💰 存款</h2>
+            <div class="form-group">
+                <label>存款金额 (ETH)</label>
+                <input type="number" id="depositAmount" placeholder="输入存款金额" step="0.1">
+            </div>
+            <div style="text-align: right; display: flex; gap: 14px; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="hideDepositModal()">取消</button>
+                <button class="btn btn-success" onclick="processDeposit()">✓ 确认存款</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 取款模态框 -->
+    <div class="modal" id="withdrawModal">
+        <div class="modal-content">
+            <h2>💸 取款</h2>
+            <div class="form-group">
+                <label>取款金额 (ETH)</label>
+                <input type="number" id="withdrawAmount" placeholder="输入取款金额" step="0.1">
+            </div>
+            <div style="text-align: right; display: flex; gap: 14px; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="hideWithdrawModal()">取消</button>
+                <button class="btn btn-warning" onclick="processWithdraw()">✓ 确认取款</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 数据存储
+        let agents = [
+            { id: 1, name: '营销智能体 Alpha', type: 'MARKETING', isActive: true, balance: 10.5, wallet: '0x1234...5678' },
+            { id: 2, name: '供应链智能体 Beta', type: 'SUPPLY_CHAIN', isActive: true, balance: 25.8, wallet: '0xabcd...efgh' },
+            { id: 3, name: '内容创作智能体 Gamma', type: 'CONTENT', isActive: false, balance: 0, wallet: '0x9876...4321' }
+        ];
+        
+        let transactions = [
+            { id: 1, fromAgentId: 1, toAgentId: 2, amount: 2.5, serviceType: '素材生成', status: 'COMPLETED', timestamp: new Date().toISOString() },
+            { id: 2, fromAgentId: 3, toAgentId: 1, amount: 1.8, serviceType: '内容创作', status: 'PENDING', timestamp: new Date().toISOString() }
+        ];
+        
+        let subscriptions = [
+            { id: 1, subscriberAgentId: 1, providerAgentId: 3, serviceType: '月度内容生成', amount: 5.0, billingCycle: 30, nextBilling: '2024-02-20', isActive: true }
+        ];
+        
+        let agentIdCounter = 4;
+        let transactionIdCounter = 3;
+        let subscriptionIdCounter = 2;
+        let currentFilterStatus = 'ALL';
+        let currentFilterSub = 'ALL';
+        let selectedAgentId = null;
+        
+        // 标签切换
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => tab.style.display = 'none');
+            document.getElementById('tab-' + tabName).style.display = 'block';
+            
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            } else if (tabName === 'agents') {
+                renderAgents();
+            } else if (tabName === 'settlements') {
+                renderSettlements();
+            } else if (tabName === 'subscriptions') {
+                renderSubscriptions();
+            }
+        }
+        
+        // 更新仪表盘
+        function updateDashboard() {
+            document.getElementById('totalAgents').textContent = agents.length;
+            document.getElementById('totalTransactions').textContent = transactions.length;
+            document.getElementById('activeSubscriptions').textContent = subscriptions.filter(s => s.isActive).length;
+            document.getElementById('totalBalance').textContent = agents.reduce((sum, a) => sum + a.balance, 0).toFixed(1) + ' ETH';
+            
+            const tbody = document.getElementById('recentTransactions');
+            tbody.innerHTML = transactions.slice(-5).reverse().map(t => {
+                const fromAgent = agents.find(a => a.id === t.fromAgentId);
+                const toAgent = agents.find(a => a.id === t.toAgentId);
+                const statusClass = t.status === 'COMPLETED' ? 'tag-success' : 'tag-warning';
+                const statusText = t.status === 'COMPLETED' ? '已完成' : '待处理';
+                
+                return `
+                    <tr>
+                        <td>${t.id}</td>
+                        <td>${fromAgent?.name || '未知'}</td>
+                        <td>${toAgent?.name || '未知'}</td>
+                        <td>${t.amount} ETH</td>
+                        <td>${t.serviceType}</td>
+                        <td><span class="tag ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-info btn-small" onclick="viewTransactionDetail(${t.id})">查看</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // 渲染智能体
+        function renderAgents() {
+            const tbody = document.getElementById('agentsTable');
+            tbody.innerHTML = agents.map(a => {
+                const statusClass = a.isActive ? 'tag-success' : 'tag-danger';
+                const statusText = a.isActive ? '活跃' : '停用';
+                
+                return `
+                    <tr>
+                        <td>${a.id}</td>
+                        <td>${a.name}</td>
+                        <td><span class="tag tag-primary">${a.type}</span></td>
+                        <td><span class="tag ${statusClass}">${statusText}</span></td>
+                        <td style="font-weight: 700; color: #a3bffa;">${a.balance.toFixed(2)} ETH</td>
+                        <td>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn btn-info btn-small" onclick="viewAgentDetail(${a.id})">详情</button>
+                                <button class="btn btn-success btn-small" onclick="showDepositModal(${a.id})">存款</button>
+                                <button class="btn btn-warning btn-small" onclick="showWithdrawModal(${a.id})">取款</button>
+                                <button class="btn btn-outline btn-small" onclick="toggleAgent(${a.id})">${a.isActive ? '停用' : '激活'}</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteAgent(${a.id})">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // 渲染结算
+        function renderSettlements() {
+            // 更新下拉选项
+            const fromAgentSelect = document.getElementById('fromAgent');
+            const toAgentSelect = document.getElementById('toAgent');
+            const options = '<option value="">选择智能体</option>' + 
+                agents.filter(a => a.isActive).map(a => `<option value="${a.id}">${a.name} (${a.balance.toFixed(2)} ETH)</option>`).join('');
+            fromAgentSelect.innerHTML = options;
+            toAgentSelect.innerHTML = options;
+            
+            // 渲染交易表
+            filterTransactionsInternal();
+        }
+        
+        // 渲染订阅
+        function renderSubscriptions() {
+            // 更新下拉选项
+            const subscriberSelect = document.getElementById('subscriberAgent');
+            const providerSelect = document.getElementById('providerAgent');
+            const options = '<option value="">选择智能体</option>' + 
+                agents.filter(a => a.isActive).map(a => `<option value="${a.id}">${a.name} (${a.balance.toFixed(2)} ETH)</option>`).join('');
+            subscriberSelect.innerHTML = options;
+            providerSelect.innerHTML = options;
+            
+            // 渲染订阅表
+            filterSubscriptionsInternal();
+        }
+        
+        // 新增智能体
+        function showAddAgentModal() {
+            document.getElementById('addAgentModal').classList.add('active');
+        }
+        
+        function hideAddAgentModal() {
+            document.getElementById('addAgentModal').classList.remove('active');
+        }
+        
+        function addAgent() {
+            const name = document.getElementById('agentName').value;
+            const type = document.getElementById('agentType').value;
+            const balance = parseFloat(document.getElementById('agentBalance').value) || 0;
+            const wallet = document.getElementById('agentWallet').value || `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 8)}`;
+            
+            if (!name) {
+                showToast('请输入智能体名称', 'error');
+                return;
+            }
+            
+            agents.push({
+                id: agentIdCounter++,
+                name,
+                type,
+                isActive: true,
+                balance,
+                wallet
+            });
+            
+            hideAddAgentModal();
+            renderAgents();
+            showToast('✅ 智能体创建成功', 'success');
+            
+            // 清空表单
+            document.getElementById('agentName').value = '';
+            document.getElementById('agentWallet').value = '';
+        }
+        
+        // 智能体详情
+        function viewAgentDetail(id) {
+            const agent = agents.find(a => a.id === id);
+            if (!agent) return;
+            
+            selectedAgentId = id;
+            const detailView = document.getElementById('agentDetailView');
+            const content = document.getElementById('agentDetailContent');
+            
+            content.innerHTML = `
+                <div class="detail-item">
+                    <span class="detail-label">ID</span>
+                    <span class="detail-value">${agent.id}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">名称</span>
+                    <span class="detail-value">${agent.name}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">类型</span>
+                    <span class="detail-value"><span class="tag tag-primary">${agent.type}</span></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">钱包地址</span>
+                    <span class="detail-value">${agent.wallet}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">状态</span>
+                    <span class="detail-value"><span class="tag ${agent.isActive ? 'tag-success' : 'tag-danger'}">${agent.isActive ? '活跃' : '停用'}</span></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">余额</span>
+                    <span class="detail-value" style="font-weight: 700; color: #a3bffa; font-size: 18px;">${agent.balance.toFixed(2)} ETH</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">参与交易数</span>
+                    <span class="detail-value">${transactions.filter(t => t.fromAgentId === id || t.toAgentId === id).length}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">相关订阅数</span>
+                    <span class="detail-value">${subscriptions.filter(s => s.subscriberAgentId === id || s.providerAgentId === id).length}</span>
+                </div>
+            `;
+            
+            detailView.classList.add('active');
+        }
+        
+        // 切换智能体状态
+        function toggleAgent(id) {
+            const agent = agents.find(a => a.id === id);
+            if (agent) {
+                agent.isActive = !agent.isActive;
+                renderAgents();
+                showToast(agent.isActive ? '✅ 智能体已激活' : '⏸️ 智能体已停用', agent.isActive ? 'success' : 'info');
+            }
+        }
+        
+        // 删除智能体
+        function deleteAgent(id) {
+            if (confirm('确定要删除此智能体吗？')) {
+                agents = agents.filter(a => a.id !== id);
+                renderAgents();
+                showToast('🗑️ 智能体已删除', 'success');
+            }
+        }
+        
+        // 存款
+        function showDepositModal(id) {
+            selectedAgentId = id;
+            document.getElementById('depositModal').classList.add('active');
+        }
+        
+        function hideDepositModal() {
+            document.getElementById('depositModal').classList.remove('active');
+            document.getElementById('depositAmount').value = '';
+        }
+        
+        function processDeposit() {
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            if (!amount || amount <= 0) {
+                showToast('请输入有效的存款金额', 'error');
+                return;
+            }
+            
+            const agent = agents.find(a => a.id === selectedAgentId);
+            if (agent) {
+                agent.balance += amount;
+                hideDepositModal();
+                renderAgents();
+                showToast(`💰 存款 ${amount} ETH 成功`, 'success');
+            }
+        }
+        
+        // 取款
+        function showWithdrawModal(id) {
+            selectedAgentId = id;
+            document.getElementById('withdrawModal').classList.add('active');
+        }
+        
+        function hideWithdrawModal() {
+            document.getElementById('withdrawModal').classList.remove('active');
+            document.getElementById('withdrawAmount').value = '';
+        }
+        
+        function processWithdraw() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            if (!amount || amount <= 0) {
+                showToast('请输入有效的取款金额', 'error');
+                return;
+            }
+            
+            const agent = agents.find(a => a.id === selectedAgentId);
+            if (agent) {
+                if (agent.balance < amount) {
+                    showToast('❌ 余额不足', 'error');
+                    return;
+                }
+                agent.balance -= amount;
+                hideWithdrawModal();
+                renderAgents();
+                showToast(`💸 取款 ${amount} ETH 成功`, 'success');
+            }
+        }
+        
+        // 余额模态框
+        function showBalanceModal() {
+            const modal = document.getElementById('balanceModal');
+            const list = document.getElementById('balanceList');
+            
+            list.innerHTML = agents.map(a => `
+                <div class="detail-item">
+                    <span class="detail-label">${a.name}</span>
+                    <span class="detail-value" style="font-weight: 700; color: #a3bffa;">${a.balance.toFixed(2)} ETH</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('totalBalanceAmount').textContent = agents.reduce((sum, a) => sum + a.balance, 0).toFixed(1) + ' ETH';
+            modal.classList.add('active');
+        }
+        
+        function hideBalanceModal() {
+            document.getElementById('balanceModal').classList.remove('active');
+        }
+        
+        // 发起结算
+        function initiateSettlement() {
+            const fromAgentId = parseInt(document.getElementById('fromAgent').value);
+            const toAgentId = parseInt(document.getElementById('toAgent').value);
+            const amount = parseFloat(document.getElementById('amount').value);
+            const serviceType = document.getElementById('serviceType').value;
+            
+            if (!fromAgentId || !toAgentId || !amount || !serviceType) {
+                showToast('❌ 请填写所有字段', 'error');
+                return;
+            }
+            
+            if (fromAgentId === toAgentId) {
+                showToast('❌ 付款方和收款方不能相同', 'error');
+                return;
+            }
+            
+            const fromAgent = agents.find(a => a.id === fromAgentId);
+            if (!fromAgent || !fromAgent.isActive) {
+                showToast('❌ 付款方不存在或未激活', 'error');
+                return;
+            }
+            
+            if (fromAgent.balance < amount) {
+                showToast('❌ 余额不足', 'error');
+                return;
+            }
+            
+            // 扣款
+            fromAgent.balance -= amount;
+            
+            // 添加交易
+            transactions.push({
+                id: transactionIdCounter++,
+                fromAgentId,
+                toAgentId,
+                amount,
+                serviceType,
+                status: 'PENDING',
+                timestamp: new Date().toISOString()
+            });
+            
+            renderSettlements();
+            showToast('✅ 结算发起成功', 'success');
+            
+            // 清空表单
+            document.getElementById('amount').value = '';
+            document.getElementById('serviceType').value = '';
+        }
+        
+        // 交易详情
+        function viewTransactionDetail(id) {
+            const transaction = transactions.find(t => t.id === id);
+            if (!transaction) return;
+            
+            const fromAgent = agents.find(a => a.id === transaction.fromAgentId);
+            const toAgent = agents.find(a => a.id === transaction.toAgentId);
+            
+            const detailView = document.getElementById('transactionDetailView');
+            const content = document.getElementById('transactionDetailContent');
+            
+            content.innerHTML = `
+                <div class="detail-item">
+                    <span class="detail-label">交易ID</span>
+                    <span class="detail-value">${transaction.id}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">付款方</span>
+                    <span class="detail-value">${fromAgent?.name || '未知'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">收款方</span>
+                    <span class="detail-value">${toAgent?.name || '未知'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">金额</span>
+                    <span class="detail-value" style="font-weight: 700; color: #a3bffa; font-size: 18px;">${transaction.amount} ETH</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">服务类型</span>
+                    <span class="detail-value">${transaction.serviceType}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">状态</span>
+                    <span class="detail-value"><span class="tag ${transaction.status === 'COMPLETED' ? 'tag-success' : transaction.status === 'FAILED' ? 'tag-danger' : 'tag-warning'}">${transaction.status}</span></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">时间</span>
+                    <span class="detail-value">${new Date(transaction.timestamp).toLocaleString('zh-CN')}</span>
+                </div>
+                ${transaction.status === 'PENDING' ? `
+                <div style="text-align: right; margin-top: 25px;">
+                    <button class="btn btn-success" onclick="completeTransaction(${transaction.id})">✅ 完成交易</button>
+                    <button class="btn btn-danger" onclick="failTransaction(${transaction.id})">❌ 标记失败</button>
+                </div>
+                ` : ''}
+            `;
+            
+            detailView.classList.add('active');
+        }
+        
+        // 完成交易
+        function completeTransaction(id) {
+            const transaction = transactions.find(t => t.id === id);
+            if (transaction) {
+                transaction.status = 'COMPLETED';
+                renderSettlements();
+                showToast('✅ 交易已完成', 'success');
+                document.getElementById('transactionDetailView').classList.remove('active');
+            }
+        }
+        
+        // 标记交易失败
+        function failTransaction(id) {
+            if (confirm('确定要标记此交易为失败吗？')) {
+                const transaction = transactions.find(t => t.id === id);
+                if (transaction) {
+                    transaction.status = 'FAILED';
+                    // 退还金额
+                    const fromAgent = agents.find(a => a.id === transaction.fromAgentId);
+                    if (fromAgent) {
+                        fromAgent.balance += transaction.amount;
+                    }
+                    renderSettlements();
+                    showToast('❌ 交易已标记为失败', 'error');
+                    document.getElementById('transactionDetailView').classList.remove('active');
+                }
+            }
+        }
+        
+        // 筛选交易
+        function filterTransactions(status) {
+            currentFilterStatus = status;
+            filterTransactionsInternal();
+        }
+        
+        function filterTransactionsInternal() {
+            let filtered = transactions;
+            if (currentFilterStatus !== 'ALL') {
+                filtered = transactions.filter(t => t.status === currentFilterStatus);
+            }
+            
+            const tbody = document.getElementById('transactionsTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <div class="empty-state-text">暂无交易记录</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = filtered.reverse().map(t => {
+                const fromAgent = agents.find(a => a.id === t.fromAgentId);
+                const toAgent = agents.find(a => a.id === t.toAgentId);
+                const statusClass = t.status === 'COMPLETED' ? 'tag-success' : t.status === 'FAILED' ? 'tag-danger' : 'tag-warning';
+                const statusText = t.status === 'COMPLETED' ? '已完成' : t.status === 'FAILED' ? '失败' : '待处理';
+                
+                return `
+                    <tr>
+                        <td>${t.id}</td>
+                        <td>${fromAgent?.name || '未知'}</td>
+                        <td>${toAgent?.name || '未知'}</td>
+                        <td>${t.amount} ETH</td>
+                        <td>${t.serviceType}</td>
+                        <td><span class="tag ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-info btn-small" onclick="viewTransactionDetail(${t.id})">查看</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // 刷新交易
+        function refreshTransactions() {
+            currentFilterStatus = 'ALL';
+            filterTransactionsInternal();
+            showToast('🔄 交易列表已刷新', 'info');
+        }
+        
+        // 创建订阅
+        function createSubscription() {
+            const subscriberAgentId = parseInt(document.getElementById('subscriberAgent').value);
+            const providerAgentId = parseInt(document.getElementById('providerAgent').value);
+            const amount = parseFloat(document.getElementById('subAmount').value);
+            const billingCycle = parseInt(document.getElementById('billingCycle').value);
+            const serviceType = document.getElementById('subServiceType').value;
+            
+            if (!subscriberAgentId || !providerAgentId || !amount || !billingCycle || !serviceType) {
+                showToast('❌ 请填写所有字段', 'error');
+                return;
+            }
+            
+            if (subscriberAgentId === providerAgentId) {
+                showToast('❌ 订阅者和提供者不能相同', 'error');
+                return;
+            }
+            
+            // 计算下次计费日期
+            const nextDate = new Date();
+            nextDate.setDate(nextDate.getDate() + billingCycle);
+            
+            // 添加订阅
+            subscriptions.push({
+                id: subscriptionIdCounter++,
+                subscriberAgentId,
+                providerAgentId,
+                serviceType,
+                amount,
+                billingCycle,
+                nextBilling: nextDate.toISOString().split('T')[0],
+                isActive: true
+            });
+            
+            renderSubscriptions();
+            showToast('✅ 订阅创建成功', 'success');
+            
+            // 清空表单
+            document.getElementById('subAmount').value = '';
+            document.getElementById('billingCycle').value = '30';
+            document.getElementById('subServiceType').value = '';
+        }
+        
+        // 订阅详情
+        function viewSubscriptionDetail(id) {
+            const subscription = subscriptions.find(s => s.id === id);
+            if (!subscription) return;
+            
+            const subscriber = agents.find(a => a.id === subscription.subscriberAgentId);
+            const provider = agents.find(a => a.id === subscription.providerAgentId);
+            
+            const detailView = document.getElementById('subscriptionDetailView');
+            const content = document.getElementById('subscriptionDetailContent');
+            
+            content.innerHTML = `
+                <div class="detail-item">
+                    <span class="detail-label">订阅ID</span>
+                    <span class="detail-value">${subscription.id}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">订阅者</span>
+                    <span class="detail-value">${subscriber?.name || '未知'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">提供者</span>
+                    <span class="detail-value">${provider?.name || '未知'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">服务类型</span>
+                    <span class="detail-value">${subscription.serviceType}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">金额</span>
+                    <span class="detail-value" style="font-weight: 700; color: #a3bffa; font-size: 18px;">${subscription.amount} ETH</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">计费周期</span>
+                    <span class="detail-value">${subscription.billingCycle} 天</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">下次计费日期</span>
+                    <span class="detail-value">${subscription.nextBilling}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">状态</span>
+                    <span class="detail-value"><span class="tag ${subscription.isActive ? 'tag-success' : 'tag-danger'}">${subscription.isActive ? '活跃' : '停用'}</span></span>
+                </div>
+                ${subscription.isActive ? `
+                <div style="text-align: right; margin-top: 25px;">
+                    <button class="btn btn-warning" onclick="processPayment(${subscription.id})">💰 处理支付</button>
+                    <button class="btn btn-danger" onclick="cancelSubscription(${subscription.id})">❌ 取消订阅</button>
+                </div>
+                ` : ''}
+            `;
+            
+            detailView.classList.add('active');
+        }
+        
+        // 处理支付
+        function processPayment(id) {
+            const subscription = subscriptions.find(s => s.id === id);
+            if (!subscription) return;
+            
+            const subscriber = agents.find(a => a.id === subscription.subscriberAgentId);
+            const provider = agents.find(a => a.id === subscription.providerAgentId);
+            
+            if (!subscriber || !provider) {
+                showToast('❌ 智能体不存在', 'error');
+                return;
+            }
+            
+            if (subscriber.balance < subscription.amount) {
+                showToast('❌ 订阅者余额不足', 'error');
+                return;
+            }
+            
+            // 扣款
+            subscriber.balance -= subscription.amount;
+            // 入账
+            provider.balance += subscription.amount;
+            
+            // 计算下次计费日期
+            const nextDate = new Date(subscription.nextBilling);
+            nextDate.setDate(nextDate.getDate() + subscription.billingCycle);
+            subscription.nextBilling = nextDate.toISOString().split('T')[0];
+            
+            renderSubscriptions();
+            showToast(`💰 支付 ${subscription.amount} ETH 成功`, 'success');
+            document.getElementById('subscriptionDetailView').classList.remove('active');
+        }
+        
+        // 取消订阅
+        function cancelSubscription(id) {
+            if (confirm('确定要取消此订阅吗？')) {
+                const subscription = subscriptions.find(s => s.id === id);
+                if (subscription) {
+                    subscription.isActive = false;
+                    renderSubscriptions();
+                    showToast('📅 订阅已取消', 'info');
+                    document.getElementById('subscriptionDetailView').classList.remove('active');
+                }
+            }
+        }
+        
+        // 筛选订阅
+        function filterSubscriptions(filter) {
+            currentFilterSub = filter;
+            filterSubscriptionsInternal();
+        }
+        
+        function filterSubscriptionsInternal() {
+            let filtered = subscriptions;
+            if (currentFilterSub !== 'ALL') {
+                filtered = subscriptions.filter(s => currentFilterSub === 'active' ? s.isActive : !s.isActive);
+            }
+            
+            const tbody = document.getElementById('subscriptionsTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <div class="empty-state-text">暂无订阅记录</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = filtered.map(s => {
+                const subscriber = agents.find(a => a.id === s.subscriberAgentId);
+                const provider = agents.find(a => a.id === s.providerAgentId);
+                const statusClass = s.isActive ? 'tag-success' : 'tag-danger';
+                const statusText = s.isActive ? '活跃' : '停用';
+                
+                return `
+                    <tr>
+                        <td>${s.id}</td>
+                        <td>${subscriber?.name || '未知'}</td>
+                        <td>${provider?.name || '未知'}</td>
+                        <td>${s.serviceType}</td>
+                        <td>${s.amount} ETH</td>
+                        <td>${s.billingCycle} 天</td>
+                        <td>${s.nextBilling}</td>
+                        <td><span class="tag ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-info btn-small" onclick="viewSubscriptionDetail(${s.id})">查看</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // 刷新订阅
+        function refreshSubscriptions() {
+            currentFilterSub = 'ALL';
+            filterSubscriptionsInternal();
+            showToast('🔄 订阅列表已刷新', 'info');
+        }
+        
+        // 搜索智能体
+        function searchAgents() {
+            const query = document.getElementById('agentSearch').value.toLowerCase();
+            const tbody = document.getElementById('agentsTable');
+            const filtered = agents.filter(a => 
+                a.name.toLowerCase().includes(query) || 
+                a.type.toLowerCase().includes(query) ||
+                a.wallet.toLowerCase().includes(query)
+            );
+            
+            tbody.innerHTML = filtered.map(a => {
+                const statusClass = a.isActive ? 'tag-success' : 'tag-danger';
+                const statusText = a.isActive ? '活跃' : '停用';
+                
+                return `
+                    <tr>
+                        <td>${a.id}</td>
+                        <td>${a.name}</td>
+                        <td><span class="tag tag-primary">${a.type}</span></td>
+                        <td><span class="tag ${statusClass}">${statusText}</span></td>
+                        <td style="font-weight: 700; color: #a3bffa;">${a.balance.toFixed(2)} ETH</td>
+                        <td>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn btn-info btn-small" onclick="viewAgentDetail(${a.id})">详情</button>
+                                <button class="btn btn-success btn-small" onclick="showDepositModal(${a.id})">存款</button>
+                                <button class="btn btn-warning btn-small" onclick="showWithdrawModal(${a.id})">取款</button>
+                                <button class="btn btn-outline btn-small" onclick="toggleAgent(${a.id})">${a.isActive ? '停用' : '激活'}</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteAgent(${a.id})">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // 刷新智能体
+        function refreshAgents() {
+            document.getElementById('agentSearch').value = '';
+            renderAgents();
+            showToast('🔄 智能体列表已刷新', 'info');
+        }
+        
+        // 显示提示
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideInToast 0.5s cubic-bezier(0.4, 0, 0.2, 1) reverse';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+        
+        // 初始化
+        updateDashboard();
+    </script>
+</body>
+</html>
